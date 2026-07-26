@@ -1,0 +1,53 @@
+{
+  "name": "smart-booking-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AI-administrator for Telegram appointment booking demo.",
+  "scripts": {
+    "dev": "tsx watch src/app/main.ts",
+    "dev:api": "tsx watch src/app/apiRunner.ts",
+    "dev:bot": "tsx watch src/app/botRunner.ts",
+    "build": "npm run build:server && npm run build:web",
+    "build:server": "tsc -p tsconfig.node.json",
+    "build:web": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "db:setup": "node scripts/setupSqlite.mjs",
+    "db:seed": "tsx prisma/seed.ts",
+    "test:smoke": "tsx scripts/smokeTest.ts",
+    "test:scenarios": "tsx scripts/scenarioTest.ts",
+    "start": "node dist/app/main.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "6.9.0",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "telegraf": "^4.16.3",
+    "zod": "^3.25.56"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.29",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.5.1",
+    "prisma": "6.9.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

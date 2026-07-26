@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-web/
+build/
+
+# Environment files — keep .env.example as template, ignore everything else
+.env
+.env.*
+!.env.example
+
+# Database
+*.db
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test artifacts
+test-results/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Large media files
+Smart_Booking_Assistant.mp4
+
+# Project meta-files (not for repo)
+angel.md
+check.md
+SPECIALISTS_UI_PLAN.md
+
+# Voiceover script
+текст озвучки.txt
+
+# Kilo worktrees
+.worktrees/

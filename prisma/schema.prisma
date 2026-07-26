@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id               String                @id @default(cuid())
+  name             String
+  phone            String?
+  telegramId       String?               @unique
+  firstVisitAt     DateTime?
+  lastVisitAt      DateTime?
+  appointmentCount Int                   @default(0)
+  adminComment     String?
+  needsAttention   Boolean               @default(false)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  appointments     Appointment[]
+  messages         ConversationMessage[]
+  states           ConversationState[]
+
+  @@index([phone])
+}
+
+model ServiceItem {
+  id                String              @id @default(cuid())
+  name              String              @unique
+  durationMinutes   Int
+  price             Int
+  description       String
+  isActive          Boolean             @default(true)
+  prepaymentEnabled Boolean             @default(false)
+  bufferBefore      Int                 @default(0)
+  bufferAfter       Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  specialists       SpecialistService[]
+  appointments      Appointment[]
+}
+
+model Specialist {
+  id           String              @id @default(cuid())
+  name         String              @unique
+  position     String
+  adminComment String?
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  services     SpecialistService[]
+  workingHours WorkingHour[]
+  breaks       BreakTime[]
+  timeBlocks   TimeBlock[]
+  appointments Appointment[]
+}
+
+model SpecialistService {
+  id           String      @id @default(cuid())
+  specialistId String
+  serviceId    String
+  specialist   Specialist  @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  service      ServiceItem @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([specialistId, serviceId])
+  @@index([serviceId])
+}
+
+model WorkingHour {
+  id           String     @id @default(cuid())
+  specialistId String
+  dayOfWeek    Int
+  startTime    String
+  endTime      String
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+
+  @@index([specialistId, dayOfWeek])
+}
+
+model BreakTime {
+  id           String     @id @default(cuid())
+  specialistId String
+  dayOfWeek    Int
+  startTime    String
+  endTime      String
+  reason       String?
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+
+  @@index([specialistId, dayOfWeek])
+}
+
+model TimeBlock {
+  id           String     @id @default(cuid())
+  specialistId String
+  date         String
+  startTime    String
+  endTime      String
+  reason       String
+  createdBy    String
+  createdAt    DateTime   @default(now())
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+
+  @@index([specialistId, date])
+}
+
+model Appointment {
+  id                 String                @id @default(cuid())
+  clientId           String
+  serviceId          String
+  specialistId       String
+  startAt            DateTime
+  endAt              DateTime
+  status             String
+  source             String
+  clientNameSnapshot String
+  clientPhoneSnapshot String?
+  comment            String?
+  confirmedByClientAt DateTime?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  client             Client                @relation(fields: [clientId], references: [id])
+  service            ServiceItem           @relation(fields: [serviceId], references: [id])
+  specialist         Specialist            @relation(fields: [specialistId], references: [id])
+  oldTransfers       AppointmentTransfer[] @relation("OldAppointment")
+  newTransfers       AppointmentTransfer[] @relation("NewAppointment")
+  reminders          Reminder[]
+
+  @@index([clientId])
+  @@index([specialistId, startAt])
+  @@index([serviceId])
+  @@index([status])
+}
+
+model AppointmentTransfer {
+  id               String      @id @default(cuid())
+  oldAppointmentId String
+  newAppointmentId String
+  oldStartAt       DateTime
+  newStartAt       DateTime
+  movedBy          String
+  reason           String?
+  createdAt        DateTime    @default(now())
+  oldAppointment   Appointment @relation("OldAppointment", fields: [oldAppointmentId], references: [id])
+  newAppointment   Appointment @relation("NewAppointment", fields: [newAppointmentId], references: [id])
+}
+
+model ConversationMessage {
+  id                String   @id @default(cuid())
+  clientId          String?
+  telegramId        String?
+  direction         String
+  text              String
+  selectedServiceId String?
+  selectedStartAt   DateTime?
+  actionType        String?
+  createdAt         DateTime @default(now())
+  client            Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([telegramId, createdAt])
+}
+
+model ConversationState {
+  id                   String   @id @default(cuid())
+  telegramId           String   @unique
+  clientId             String?
+  step                 String
+  selectedServiceId    String?
+  selectedSpecialistId String?
+  selectedDate         String?
+  selectedStartAt      DateTime?
+  clientName           String?
+  clientPhone          String?
+  data                 String?
+  expiresAt            DateTime?
+  updatedAt            DateTime @updatedAt
+  client               Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+}
+
+model LogEntry {
+  id          String   @id @default(cuid())
+  level       String
+  source      String
+  action      String
+  description String
+  data        String?
+  createdAt   DateTime @default(now())
+
+  @@index([level])
+  @@index([createdAt])
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Reminder {
+  id            String      @id @default(cuid())
+  appointmentId String
+  type          String
+  sendAt        DateTime
+  status        String
+  sentAt        DateTime?
+  error         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([sendAt, status])
+  @@index([appointmentId])
+}
